@@ -113,14 +113,19 @@ Pointer<T,size>::Pointer(T *t){
 
     // TODO: Implement Pointer constructor
     // Lab: Smart Pointer Project Lab
-     
-    PtrDetails<T>  new_p(t, size);
+    auto p = findPtrInfo(t); 
+    
+    if (p == refContainer.end()) {
+        PtrDetails<T>  new_p(t, size);
+        refContainer.push_back(new_p);
+    } else
+       ++p->refcount; 
+
     //std::cout << "#debug instructor size: " << size << std::endl;
     addr = t;
     if (size > 0)
         isArray = true;
     arraySize = size;
-    refContainer.push_back(new_p);
     
 }
 
@@ -131,13 +136,14 @@ Pointer<T,size>::Pointer(const Pointer &ob){
     // TODO: Implement Pointer constructor
     // Lab: Smart Pointer Project Lab
     this->addr = ob.addr;
-    typename std::list<PtrDetails<T> >::iterator p;
-    p = findPtrInfo(ob.addr);
+    this->isArray = ob.isArray;
+    this->arraySize = ob.arraySize;
+
+    auto p = findPtrInfo(ob.addr);
     ++p->refcount; 
     
     p = findPtrInfo(this->addr);
     --p->refcount; 
-
 }
 
 // Destructor for Pointer.
@@ -192,14 +198,20 @@ T *Pointer<T, size>::operator=(T *t){
 
     // TODO: Implement operator==
     // LAB: Smart Pointer Project Lab
-    typename std::list<PtrDetails<T> >::iterator p;
-    p = findPtrInfo(this->addr);
-    ++p->refcount;
-    std::cout << "#debug the refcount of current: " << p->refcount << std::endl;
-    std::cout << "#debug refContainer size is: " << refContainerSize() << std::endl;
+    auto p = findPtrInfo(this->addr);
+    --p->refcount;
+
+    p =findPtrInfo(t);
+    if ( p != refContainer.end()) {
+        ++p->refcount;
+    } else {
+        PtrDetails<T> new_item(t, size);
+        refContainer.push_back(new_item); 
+    }
+        
+    //std::cout << "#debug the refcount of current: " << p->refcount << std::endl;
+    //std::cout << "#debug refContainer size is: " << refContainerSize() << std::endl;
     this->addr = t;
-    //if ((p = findPtrInfo(t)))
-    //    ++p->refcount;
     return addr;
 }
 
@@ -209,11 +221,10 @@ Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv){
 
     // TODO: Implement operator==
     // LAB: Smart Pointer Project Lab
-    typename std::list<PtrDetails<T> >::iterator p, rv_p;
-    rv_p = findPtrInfo(rv.addr);
+    auto rv_p = findPtrInfo(rv.addr);
     ++rv_p->refcount;
    
-    p = findPtrInfo(this->addr); 
+    auto p = findPtrInfo(this->addr); 
     --p->refcount;
     p->memPtr = rv_p->memPtr;
 
