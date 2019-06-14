@@ -33,7 +33,7 @@ array, then arraySize contains its size */
        if (size > 0) 
           isArray = true; 
        arraySize = size;
-       ++refcount;
+       refcount = 1;
     }
 };
 // Overloading operator== allows two class objects to be compared.
