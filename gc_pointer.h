@@ -113,15 +113,17 @@ Pointer<T,size>::Pointer(T *t){
 
     // TODO: Implement Pointer constructor
     // Lab: Smart Pointer Project Lab
-    auto p = findPtrInfo(t); 
     
-    if (p == refContainer.end()) {
-        PtrDetails<T>  new_p(t, size);
-        refContainer.push_back(new_p);
-    } else
-       ++p->refcount; 
-
-    //std::cout << "#debug instructor size: " << size << std::endl;
+    //auto p = findPtrInfo(t); 
+    //if (p == refContainer.end()) {
+    //    PtrDetails<T>  new_p(t, size);
+    //    refContainer.push_back(new_p);
+    //} else
+    //   ++p->refcount; 
+    //
+    
+    PtrDetails<T> new_item(t, size);
+    refContainer.push_back(new_item);
     addr = t;
     if (size > 0)
         isArray = true;
@@ -226,7 +228,6 @@ Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv){
    
     auto p = findPtrInfo(this->addr); 
     --p->refcount;
-    p->memPtr = rv_p->memPtr;
 
     this->addr = rv.addr;
 
