@@ -35,6 +35,7 @@ private:
 public:
     // Define an iterator type for Pointer<T>.
     typedef Iter<T> GCiterator;
+
     // Empty constructor
     // NOTE: templates aren't able to have prototypes with default arguments
     // this is why constructor is designed like this:
@@ -44,11 +45,13 @@ public:
     Pointer(T*);
     // Copy constructor.
     Pointer(const Pointer &);
+
     // Destructor for Pointer.
     ~Pointer();
     // Collect garbage. Returns true if at least
     // one object was freed.
     static bool collect();
+
     // Overload assignment of pointer to Pointer.
     T *operator=(T *t);
     // Overload assignment of Pointer to Pointer.
@@ -65,6 +68,7 @@ public:
     T &operator[](int i){ return addr[i];}
     // Conversion function to T *.
     operator T *() { return addr; }
+
     // Return an Iter to the start of the allocated memory.
     Iter<T> begin(){
         int _size;
@@ -83,6 +87,7 @@ public:
             _size = 1;
         return Iter<T>(addr + _size, addr, addr + _size);
     }
+
     // Return the size of refContainer for this type of Pointer.
     static int refContainerSize() { return refContainer.size(); }
     // A utility function that displays refContainer.
@@ -108,8 +113,13 @@ Pointer<T,size>::Pointer(T *t){
 
     // TODO: Implement Pointer constructor
     // Lab: Smart Pointer Project Lab
-    PtrDetails<T>  new_p(t, arraySize);
+     
+    PtrDetails<T>  new_p(t, size);
+    //std::cout << "#debug instructor size: " << size << std::endl;
     addr = t;
+    if (size > 0)
+        isArray = true;
+    arraySize = size;
     refContainer.push_back(new_p);
     
 }
@@ -154,7 +164,7 @@ bool Pointer<T, size>::collect(){
     typename std::list<PtrDetails<T> >::iterator p;
     do{
         // Scan refContainer looking for unreferenced pointers.
-        for (p = refContainer.begin(); p != refContainer.end(); p++){
+        for (p = refContainer.begin(); p != refContainer.end(); ++p){
             if (p->refcount > 0)
                 continue;
             // Remove unused entry from refContainer.
@@ -162,16 +172,17 @@ bool Pointer<T, size>::collect(){
             // Free memory unless the Pointer is null.
             refContainer.remove(*p);
             
-            if (p->memptr) {
+            if (p->memPtr) {
                 if (p->isArray)
-                    delete [] p->memptr;
+                    delete [] p->memPtr;
                 else
-                    delete p->memptr;
+                    delete p->memPtr;
             }
             // Restart the search.
             break;
         }
     } while (p != refContainer.end());
+    std::cout << "#debug collect() refContainerSize" << refContainerSize() << std::endl;
     return memfreed;
 }
 
@@ -183,14 +194,15 @@ T *Pointer<T, size>::operator=(T *t){
     // LAB: Smart Pointer Project Lab
     typename std::list<PtrDetails<T> >::iterator p;
     p = findPtrInfo(this->addr);
-    --p->refcount;
-
-    this->addr = t;
-    p = findPtrInfo(t);
     ++p->refcount;
-    
-
+    std::cout << "#debug the refcount of current: " << p->refcount << std::endl;
+    std::cout << "#debug refContainer size is: " << refContainerSize() << std::endl;
+    this->addr = t;
+    //if ((p = findPtrInfo(t)))
+    //    ++p->refcount;
+    return addr;
 }
+
 // Overload assignment of Pointer to Pointer.
 template <class T, int size>
 Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv){
@@ -208,7 +220,6 @@ Pointer<T, size> &Pointer<T, size>::operator=(Pointer &rv){
     this->addr = rv.addr;
 
     return p;
-
 }
 
 // A utility function that displays refContainer.
@@ -221,7 +232,7 @@ void Pointer<T, size>::showlist(){
     {
         std::cout << " Container is empty!\n\n ";
     }
-    for (p = refContainer.begin(); p != refContainer.end(); p++)
+    for (p = refContainer.begin(); p != refContainer.end(); ++p)
     {
         std::cout << "[" << (void *)p->memPtr << "]"
              << " " << p->refcount << " ";
